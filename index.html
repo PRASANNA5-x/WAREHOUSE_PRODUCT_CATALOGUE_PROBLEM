@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Warehouse Product Catalogue</title>
+
+    <style>
+        body {
+            background: white;
+            margin: 30px;
+            font-family: Arial;
+        }
+
+        input, select, button {
+            padding: 8px;
+            margin: 5px;
+        }
+
+        button {
+            background: green;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            background: white;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background: lightgreen;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Warehouse Catalogue Management</h2>
+
+    <!-- product id  -->
+    <input type="number" id="pid" placeholder="Product ID">
+
+    <br>
+
+    <!-- product name -->
+    <input type="text" id="pname" placeholder="Product Name">
+
+    <br>
+
+    <!-- product price -->
+    <input type="number" id="price" placeholder="Price">
+    <br>
+
+    <!-- product quantity -->
+    <input type="number" id="quantity" placeholder="Product Quantity">
+    <br>
+
+
+    <!-- select warehouse -->
+    <select id="warehouse">
+        <option value="">Select Warehouse</option>
+        <option value="Warehouse A">Warehouse-A</option>
+        <option value="Warehouse B">Warehouse-B</option>
+    </select>
+
+    <br>
+
+    <!-- Buttons -->
+    <button onclick="addProduct()">Add Product</button>
+    <button onclick="updateProduct()">Update Product</button>
+
+    <h2>Product List</h2>
+
+    <!-- Product table -->
+    <table>
+        <thead>
+            <tr>
+                <th>P-ID</th>
+                <th>P-Name</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Warehouse</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody id="productTable"></tbody>
+    </table>
+
+    <br>
+
+    <h2>Sell Product</h2>
+
+    <!-- selling details -->
+    <input type="number" id="sellId" placeholder="Product ID">
+    <input type="number" id="sellQuantity" placeholder="Sell Quantity">
+
+    <button onclick="sellProduct()">Sell Product</button>
+
+    <script>
+
+        // Array to store products
+        let products = [];
+
+
+        //  function to add products
+
+        function addProduct() {
+
+            let id = document.getElementById("pid").value;
+            let name = document.getElementById("pname").value.trim();
+            let priceText = document.getElementById("price").value;
+            let price = Number(priceText);
+            let quantity = Number(document.getElementById("quantity").value);
+            let warehouse = document.getElementById("warehouse").value;
+
+            // validations
+            if (id === "" || Number(id) <= 0 || !Number.isInteger(Number(id)) || name === "" || priceText === "" || price <= 0 ||!checkQuantity(quantity) || warehouse === "") {
+
+                alert("invalid entry! enter valid product details.");
+                return;
+
+            }
+
+            // check duplicate product id
+            for (let p of products) {
+
+                if (p.id === id) {
+                    alert("product id already exists!");
+                    return;
+                }
+            }
+
+            // add product to array
+            products.push({id, name, price, quantity, warehouse});
+
+            alert("Product added successfully");
+
+            displayProducts();
+
+            clearFields();
+        }
+
+
+        // function to display products
+
+        function displayProducts() {
+
+            let table = document.getElementById("productTable");
+
+            table.innerHTML = "";
+
+            products.forEach(function(p, index) {
+
+                let row = table.insertRow();
+
+                row.insertCell(0).textContent = p.id;
+                row.insertCell(1).textContent = p.name;
+                row.insertCell(2).textContent = p.price;
+                row.insertCell(3).textContent = p.quantity;
+                row.insertCell(4).textContent = p.warehouse;
+
+                let actions = row.insertCell(5);
+
+                // edit Button
+                let editbtn = document.createElement("button");
+
+                editbtn.textContent = "Edit";
+
+                editbtn.onclick = function() {
+                    editProduct(index);
+                };
+
+                // delete Button
+                let deletebtn = document.createElement("button");
+
+                deletebtn.textContent = "Delete";
+
+                deletebtn.onclick = function() {
+                    deleteProduct(index);
+                };
+
+                actions.appendChild(editbtn);
+                actions.appendChild(deletebtn);
+
+            });
+        }
+
+
+        // function to edit product
+
+        function editProduct(index) {
+
+            let p = products[index];
+
+            document.getElementById("pid").value = p.id;
+            document.getElementById("pname").value = p.name;
+            document.getElementById("price").value = p.price;
+            document.getElementById("quantity").value = p.quantity;
+            document.getElementById("warehouse").value = p.warehouse;
+
+
+            // Product id cannot be changed while editing
+            document.getElementById("pid").readOnly = true;
+
+        }
+
+
+        // function to update product
+
+        function updateProduct() {
+
+            let id = document.getElementById("pid").value;
+            let name = document.getElementById("pname").value.trim();
+            let priceText = document.getElementById("price").value;
+            let price = Number(priceText);
+            let quantity = Number(document.getElementById("quantity").value);
+            let warehouse = document.getElementById("warehouse").value;
+
+            // Validation
+            if (id === "" || Number(id) <= 0 || !Number.isInteger(Number(id)) || name === "" || priceText === "" || price <= 0 ||!checkQuantity(quantity) || warehouse === "") {
+
+                alert("invalid entry!");
+                return;
+
+            }
+
+            // to find product by product id
+            let product = products.find(p => p.id === id);
+
+            if (product) {
+
+                product.name = name;
+                product.price = price;
+                product.quantity = quantity;
+                product.warehouse = warehouse;
+
+                alert("Product Updated Successfully");
+
+                displayProducts();
+
+                clearFields();
+
+            } 
+            
+            else {
+
+                alert("product id not found");
+            }
+
+        }
+
+
+        //function to delete product
+
+        function deleteProduct(index) {
+
+            products.splice(index, 1);
+
+            alert("Product Deleted Successfully");
+
+            displayProducts();
+
+            clearFields();
+        }
+
+
+        //function to clear input fields
+
+        function clearFields() {
+
+            document.getElementById("pid").value = "";
+            document.getElementById("pname").value = "";
+            document.getElementById("price").value = "";
+            document.getElementById("quantity").value = "";
+            document.getElementById("warehouse").value = "";
+
+            //same product id cannot be changed while editing 
+            document.getElementById("pid").readOnly = false;
+        }
+
+
+        //function to check valid quantity
+
+        function checkQuantity(quantity) {
+
+            if (!Number.isInteger(quantity) || quantity <= 0) {
+                return false;
+            }
+
+            return true;
+        }
+
+
+        // function to check product  exists 
+
+        function checkProduct(id) {
+
+            let product = products.find(p => p.id === id);
+
+            if (!product) {
+                alert("Product Not Present!");
+                return null;
+            }
+
+            return product;
+        }
+
+
+        //function to check enough stock
+
+        function checkStock(product, quantity) {
+
+            if (product.quantity < quantity) {
+
+                alert("Not Enough Stock!");
+                return false;
+            }
+
+            return true;
+        }
+
+
+        // function for selling product
+
+        function sellProduct() {
+
+            let id = document.getElementById("sellId").value;
+
+            let quantityText = document.getElementById("sellQuantity").value;
+
+            let quantity = Number(quantityText);
+
+            // check invalid product id or quantity
+            if (id === "" || Number(id) <= 0 || !Number.isInteger(Number(id)) || quantityText === "" || !checkQuantity(quantity)) {
+
+                alert("invalid product id or quantity!");
+                return; 
+
+            }
+
+            // to check product exists
+            let product = checkProduct(id);
+
+            if (!product) {
+                return;
+            }
+
+            // to check valid supply of stock
+            if (!checkStock(product, quantity)) {
+                return;
+            }
+
+            // to reduce stock after selling 
+            product.quantity = product.quantity - quantity;
+
+            alert("Product Sold Successfully!");
+
+            displayProducts();
+
+            // clear selling fields
+            document.getElementById("sellId").value = "";
+
+            document.getElementById("sellQuantity").value = "";
+        }
+
+    </script>
+
+</body>
+
+
+
+</html>
